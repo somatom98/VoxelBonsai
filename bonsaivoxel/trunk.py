@@ -1,5 +1,6 @@
 import math
 import random
+from operator import add, sub
 
 import numpy as np
 
@@ -44,7 +45,9 @@ class Trunk:
             endingPointZ = self.startingPoint.z + random.uniform(self.minHeight,self.maxHeight)
             return Point(self.startingPoint.x, self.startingPoint.y, endingPointZ).neighborhood2Dz(self.width/2)
         elif self.style in [TreeStyles.CASCADE, TreeStyles.SEMI_CASCADE]:
-            endingPointX = self.startingPoint.x + random.uniform(self.minHeight,self.maxHeight)
+            operations = (add, sub)
+            addOrSubtract = random.choice(operations)
+            endingPointX = addOrSubtract(self.startingPoint.x, random.uniform(self.minHeight,self.maxHeight))
             endingPointZ = self.startingPoint.z - random.uniform(self.minHeight, self.maxHeight)
             return Point(endingPointX, self.startingPoint.y, endingPointZ)
         elif self.style in [TreeStyles.FORMAL_UPRIGHT, TreeStyles.INFORMAL_UPRIGHT, TreeStyles.BROOM]:
@@ -80,8 +83,8 @@ class Trunk:
             self.endingPoint = Point(self.endingPoint.x + offset.x, self.endingPoint.y + offset.y, self.endingPoint.z + offset.z)
 
     def calculateMatrixSize(self):
-        x = max(self.width, self.endingPoint.xInt() + 1)
+        x = max(self.startingPoint.xInt(), self.endingPoint.xInt()) + 1
         y = self.depth
-        z = self.startingPoint.zInt() - self.endingPoint.zInt() + 1
+        z = max(self.startingPoint.zInt(), self.endingPoint.zInt()) + 1
         print("Matrix size:",x,y,z)
         return Point(x,y,z)

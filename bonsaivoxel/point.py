@@ -32,10 +32,8 @@ class Point:
 
     def neighborhood2Dz(self, r):
         point = Point(random.uniform(-r,r), random.uniform(-r,r), self.z)
-        #print(point.x, point.y, point.z)
         while self.distanceTo(point) >= r:
             point = Point(random.uniform(-r,r), random.uniform(-r,r), self.z)
-            #print(point.x, point.y, point.z)
         return point
 
     def hasNegativeCoordinates(self):

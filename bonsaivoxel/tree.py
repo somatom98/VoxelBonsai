@@ -47,5 +47,5 @@ class Tree:
 
 
 
-tree = Tree(TreeSizes.MAME, TreeSpecies.MAPLE, TreeStyles.CASCADE)
+tree = Tree(TreeSizes.MAME, TreeSpecies.MAPLE, TreeStyles.FORMAL_UPRIGHT)
 tree.generateVOX('test.vox')
