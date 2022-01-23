@@ -1,0 +1,4 @@
+coloredlogs~=15.0.1
+matplotlib~=3.5.1
+numpy~=1.21.5
+setuptools~=57.0.0

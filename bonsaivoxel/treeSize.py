@@ -1,4 +1,4 @@
-from main.treeConstants import TreeSizes
+from treeConstants import TreeSizes
 
 
 class TreeSize():

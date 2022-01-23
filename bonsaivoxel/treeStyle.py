@@ -1,4 +1,4 @@
-from main.treeConstants import *
+from treeConstants import *
 
 
 class TreeStyle:

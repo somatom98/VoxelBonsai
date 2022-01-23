@@ -3,11 +3,9 @@ import random
 
 import numpy as np
 
-from main import treeStyle
-from main.point import Point
-from main.treeConstants import *
-from main.treeSize import treeSizes
-from main.treeStyle import treeStyles
+from point import Point
+from treeConstants import *
+from treeSize import treeSizes
 
 
 class Trunk:

@@ -2,9 +2,9 @@ import math
 
 import numpy as np
 
-from main.treeConstants import *
-from main.treeSize import treeSizes
-from main.treeStyle import treeStyles
+from treeConstants import *
+from treeSize import treeSizes
+from treeStyle import treeStyles
 
 
 class Vase:

@@ -1,9 +1,5 @@
-import numpy as np
-
-from main.treeConstants import TreeParts, TreeSizes
-from main.treeSize import treeSizes
-from main.trunk import Trunk
-from main.vase import *
+from trunk import Trunk
+from vase import *
 from pyvox.models import Vox
 from pyvox.writer import VoxWriter
 
