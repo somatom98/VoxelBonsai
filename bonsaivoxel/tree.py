@@ -2,6 +2,8 @@ from trunk import Trunk
 from vase import *
 from pyvox.models import Vox
 from pyvox.writer import VoxWriter
+import numpy as np
+
 
 class Tree:
 
@@ -10,6 +12,7 @@ class Tree:
         self.size = size
         self.species = species
         self.style = style
+        self.trunk = Trunk(size, species, style)
 
         self.treeMatrix = self.generateEmptyMatrix()
         self.generateVase()
@@ -20,17 +23,17 @@ class Tree:
 
     def generateEmptyMatrix(self):
         s = treeSizes[self.size].width
-        matrix = np.zeros((s,s,s*2), dtype=int)
+        matrix = np.zeros((s, s, s * 2), dtype=int)
         return matrix
 
     def generateVase(self):
         i = TreeParts.VASE.value
-        #self.treeMatrix = getCompatibleVases(self.size, self.species, self.style)[0]
-        #self.treeMatrix = getDefaultVase(self)
+        # self.treeMatrix = getCompatibleVases(self.size, self.species, self.style)[0]
+        # self.treeMatrix = getDefaultVase(self)
 
     def generateTrunk(self):
         trunkMatrix = Trunk(self.size, self.species, self.style).trunkMatrix
-        self.treeMatrix = trunkMatrix #numpy.concatenate((self.treeMatrix, trunkMatrix))
+        self.treeMatrix = trunkMatrix  # numpy.concatenate((self.treeMatrix, trunkMatrix))
 
     def generateDeadwood(self):
         i = TreeParts.DEADWOOD.value
@@ -44,7 +47,6 @@ class Tree:
     def generateVOX(self, fileName):
         vox = Vox.from_dense(np.flip(np.rot90(tree.treeMatrix)))
         VoxWriter(fileName, vox).write()
-
 
 
 tree = Tree(TreeSizes.MAME, TreeSpecies.MAPLE, TreeStyles.FORMAL_UPRIGHT)
