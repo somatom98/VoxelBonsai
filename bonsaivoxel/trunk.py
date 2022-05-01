@@ -38,13 +38,13 @@ class Trunk:
         for vrtx in self.points:
             for nxtvrtx in self.points[vrtx]:
                 if {nxtvrtx, vrtx} not in edgename:
-                    edgename.append({vrtx, nxtvrtx})
+                    edgename.append([vrtx, nxtvrtx])
         return edgename
 
     def generateTrunk(self):
-        startingPoint = self.calculateStartingPoint()
-        endingPoint = self.calculateEndingPoint(startingPoint)
-        self.generateTrunkGraph(startingPoint, endingPoint)
+        self.startingPoint = self.calculateStartingPoint()
+        self.endingPoint = self.calculateEndingPoint(self.startingPoint)
+        self.generateTrunkGraph(self.startingPoint, self.endingPoint)
         self.baseWidth = self.calculateBaseWidth()
         print("Base width:", self.baseWidth)
 
@@ -79,9 +79,7 @@ class Trunk:
             self.addEdge(pointA, pointB)
             pointA, pointB = pointB, endingPoint
         self.addEdge(pointA, pointB)
-        print("edge:",
-              "[", pointA.x, ",", pointA.y, ",", pointA.z, "]",
-              "[", pointB.x, ",", pointB.y, ",", pointB.z, "]")
+        print("edge:", pointA, pointB)
 
     def generateMiddlePoint(self, pointA, pointB):
         ANGLE_VARIATION = 45
@@ -109,12 +107,19 @@ class Trunk:
     def fillTrunkMatrix(self): #TODO
         i = TreeParts.TRUNK.value
         self.changeCoordinatesToAvoidNegativeIndexes()
-        for point in self.points:
-            print("Point:", point.x, point.y, point.z)
         matrixSize = self.calculateMatrixSize()
         self.trunkMatrix = np.zeros((matrixSize.z, matrixSize.y, matrixSize.x), dtype=int)
-        #self.trunkMatrix[self.startingPoint.zInt()][self.startingPoint.yInt()][self.startingPoint.xInt()] = i
-        #self.trunkMatrix[self.endingPoint.zInt()][self.endingPoint.yInt()][self.endingPoint.xInt()] = 5
+        for edge in self.findEdges():
+            print("EDGES:", edge)
+            newPoint = Point(edge[1].xInt(), edge[1].yInt(), edge[1].zInt())
+            while edge[0].zInt() != newPoint.zInt():
+                if newPoint.zInt() > edge[0].zInt():
+                    newPoint.z -=1 
+                else:
+                    newPoint.z += 1
+                self.trunkMatrix[newPoint.z, newPoint.y, newPoint.x] = i
+        self.trunkMatrix[self.startingPoint.zInt()][self.startingPoint.yInt()][self.startingPoint.xInt()] = i
+        self.trunkMatrix[self.endingPoint.zInt()][self.endingPoint.yInt()][self.endingPoint.xInt()] = 5
 
     def changeCoordinatesToAvoidNegativeIndexes(self):
         offset = Point(0,0,0)
@@ -127,8 +132,8 @@ class Trunk:
                 point = Point(point.x + offset.x, point.y + offset.y, point.z + offset.z)
 
     def calculateMatrixSize(self): #TODO
-        #x = max(self.startingPoint.xInt(), self.endingPoint.xInt()) + 1
+        x = max(self.startingPoint.xInt(), self.endingPoint.xInt()) + 1
         y = self.depth
-        #z = max(self.startingPoint.zInt(), self.endingPoint.zInt()) + 1
+        z = max(self.startingPoint.zInt(), self.endingPoint.zInt()) + 1
         print("Matrix size:",x,y,z)
         return Point(x,y,z)

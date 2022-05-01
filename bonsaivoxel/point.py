@@ -17,6 +17,12 @@ class Point:
                      sPoint.rho * math.scosin(sPoint.theta),
                      sPoint.live)
 
+    def __str__(self):
+        return "[{},{},{}]".format(self.x, self.y, self.z)
+
+    def __repr__(self):
+        return "[{},{},{}]".format(self.x, self.y, self.z)
+
     def __add__(self, other):
         return Point(self.x + other.x, self.y + other.y, self.z + other.z, self.live)
 

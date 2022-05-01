@@ -49,5 +49,5 @@ class Tree:
         VoxWriter(fileName, vox).write()
 
 
-tree = Tree(TreeSizes.MAME, TreeSpecies.MAPLE, TreeStyles.FORMAL_UPRIGHT)
-tree.generateVOX('test.vox')
+tree = Tree(TreeSizes.DAI, TreeSpecies.MAPLE, TreeStyles.FORMAL_UPRIGHT)
+tree.generateVOX('bonsai.vox')
