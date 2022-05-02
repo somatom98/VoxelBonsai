@@ -76,6 +76,7 @@ class Trunk:
         pointA, pointB = startingPoint, endingPoint
         while self.canGenerateMiddlePoint(pointA, pointB):
             pointB = self.generateMiddlePoint(pointA, pointB)
+            print("Point", pointB)
             self.addEdge(pointA, pointB)
             pointA, pointB = pointB, endingPoint
         self.addEdge(pointA, pointB)
@@ -92,6 +93,7 @@ class Trunk:
                                             sphPointB.phi + random.uniform(-ANGLE_VARIATION, ANGLE_VARIATION),
                                             sphPointB.live)
             middlePoint = Point.fromSpherical(sphMiddlePoint)
+            middlePoint = middlePoint + pointA
         return middlePoint
         #TreeStyles.BROOM, TreeStyles.MULTIPLE_TRUNK, TreeStyles.FOREST
 
@@ -135,5 +137,9 @@ class Trunk:
         x = max(self.startingPoint.xInt(), self.endingPoint.xInt()) + 1
         y = self.depth
         z = max(self.startingPoint.zInt(), self.endingPoint.zInt()) + 1
+        for edge in self.findEdges():
+            x = max(x, edge[0].xInt(), edge[1].xInt()) + 1
+            y = max(y, edge[0].yInt(), edge[1].yInt()) + 1
+            z = max(z, edge[0].zInt(), edge[1].zInt()) + 1
         print("Matrix size:",x,y,z)
         return Point(x,y,z)

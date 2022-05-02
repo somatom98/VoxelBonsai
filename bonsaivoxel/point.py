@@ -12,9 +12,11 @@ class Point:
 
     @staticmethod
     def fromSpherical(sPoint):
-        return Point(sPoint.rho * math.sin(sPoint.theta) * math.cos(sPoint.phi),
-                     sPoint.rho * math.sin(sPoint.theta) * math.sin(sPoint.phi),
-                     sPoint.rho * math.scosin(sPoint.theta),
+        theta = sPoint.theta * math.pi / 180
+        phi = sPoint.phi * math.pi / 180
+        return Point(sPoint.rho * math.cos(phi) * math.sin(theta),
+                     sPoint.rho * math.sin(phi) * math.sin(theta),
+                     sPoint.rho * math.cos(phi),
                      sPoint.live)
 
     def __str__(self):
@@ -81,6 +83,8 @@ class SphericalPoint:
 
     @staticmethod
     def fromCartesian(cartesianPoint: Point):
-        return SphericalPoint(cartesianPoint.distanceTo(Point(0, 0, 0)),
-                              math.acos(cartesianPoint.z / cartesianPoint.distanceTo(Point(0, 0, 0))),
-                              math.atan(cartesianPoint.y / cartesianPoint.x), cartesianPoint.live)
+        return SphericalPoint(
+            cartesianPoint.distanceTo(Point(0, 0, 0)),
+            math.acos(cartesianPoint.z / cartesianPoint.distanceTo(Point(0, 0, 0)))*180/math.pi,
+            math.atan2(cartesianPoint.y, cartesianPoint.x)*180/math.pi,
+            cartesianPoint.live)
