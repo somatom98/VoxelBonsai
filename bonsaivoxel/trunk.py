@@ -41,6 +41,19 @@ class Trunk:
                     edgename.append([vrtx, nxtvrtx])
         return edgename
 
+    def offsetPoints(self, offset):
+        newPoints = {}
+        for vrtx in self.points:
+            for nxtvrtx in self.points[vrtx]:
+                vrtx1 = vrtx + offset
+                vrtx2 = nxtvrtx + offset
+                if vrtx1 in self.points:
+                    newPoints[vrtx1].append(vrtx2)
+                else:
+                    newPoints[vrtx1] = [vrtx2]
+        self.points = newPoints
+
+
     def generateTrunk(self):
         self.startingPoint = self.calculateStartingPoint()
         self.endingPoint = self.calculateEndingPoint(self.startingPoint)
@@ -80,7 +93,6 @@ class Trunk:
             self.addEdge(pointA, pointB)
             pointA, pointB = pointB, endingPoint
         self.addEdge(pointA, pointB)
-        print("edge:", pointA, pointB)
 
     def generateMiddlePoint(self, pointA, pointB):
         ANGLE_VARIATION = 45
@@ -106,7 +118,7 @@ class Trunk:
         else:
             return random.uniform(1, int(self.width/2) + 1) / 2
 
-    def fillTrunkMatrix(self): #TODO
+    def fillTrunkMatrix(self): 
         i = TreeParts.TRUNK.value
         self.changeCoordinatesToAvoidNegativeIndexes()
         matrixSize = self.calculateMatrixSize()
@@ -125,21 +137,21 @@ class Trunk:
 
     def changeCoordinatesToAvoidNegativeIndexes(self):
         offset = Point(0,0,0)
-        for point in self.points:
-            if point.hasNegativeCoordinates():
-                newOffset = point.getNegativeOffset()
+        for edge in self.findEdges():
+            if edge[1].hasNegativeCoordinates():
+                newOffset = edge[1].getNegativeOffset()
                 offset = Point(max(offset.x, newOffset.x), max(offset.y, newOffset.y), max(offset.z, newOffset.z))
+            print(edge[1], edge[1].hasNegativeCoordinates(), offset)
         if offset.x != 0 or offset.y != 0 or offset.z != 0:
-            for point in self.points:
-                point = Point(point.x + offset.x, point.y + offset.y, point.z + offset.z)
+            self.offsetPoints(offset)
 
     def calculateMatrixSize(self): #TODO
         x = max(self.startingPoint.xInt(), self.endingPoint.xInt()) + 1
         y = self.depth
         z = max(self.startingPoint.zInt(), self.endingPoint.zInt()) + 1
         for edge in self.findEdges():
-            x = max(x, edge[0].xInt(), edge[1].xInt()) + 1
-            y = max(y, edge[0].yInt(), edge[1].yInt()) + 1
-            z = max(z, edge[0].zInt(), edge[1].zInt()) + 1
+            x = max(x, edge[0].xInt() + 1, edge[1].xInt() + 1)
+            y = max(y, edge[0].yInt() + 1, edge[1].yInt() + 1) 
+            z = max(z, edge[0].zInt() + 1, edge[1].zInt() + 1)
         print("Matrix size:",x,y,z)
         return Point(x,y,z)
