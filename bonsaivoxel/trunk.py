@@ -3,6 +3,7 @@ import random
 from operator import add, sub
 
 import numpy as np
+from utils.dataTree import DataTree
 
 from point import Point, SphericalPoint
 from treeConstants import *
@@ -15,7 +16,6 @@ class Trunk:
         self.size = size
         self.species = species
         self.style = style
-        self.points = {}
 
         self.width = math.ceil(treeSizes[self.size].width)
         self.depth = math.ceil(treeSizes[self.size].depth)
@@ -27,36 +27,10 @@ class Trunk:
         self.generateTrunk()
         self.fillTrunkMatrix()
 
-    def addEdge(self, vrtx1, vrtx2):
-        if vrtx1 in self.points:
-            self.points[vrtx1].append(vrtx2)
-        else:
-            self.points[vrtx1] = [vrtx2]
-
-    def findEdges(self):
-        edgename = []
-        for vrtx in self.points:
-            for nxtvrtx in self.points[vrtx]:
-                if {nxtvrtx, vrtx} not in edgename:
-                    edgename.append([vrtx, nxtvrtx])
-        return edgename
-
-    def offsetPoints(self, offset):
-        newPoints = {}
-        for vrtx in self.points:
-            for nxtvrtx in self.points[vrtx]:
-                vrtx1 = vrtx + offset
-                vrtx2 = nxtvrtx + offset
-                if vrtx1 in self.points:
-                    newPoints[vrtx1].append(vrtx2)
-                else:
-                    newPoints[vrtx1] = [vrtx2]
-        self.points = newPoints
-
-
     def generateTrunk(self):
         self.startingPoint = self.calculateStartingPoint()
         self.endingPoint = self.calculateEndingPoint(self.startingPoint)
+        self.points = DataTree(self.startingPoint)
         self.generateTrunkGraph(self.startingPoint, self.endingPoint)
         self.baseWidth = self.calculateBaseWidth()
         print("Base width:", self.baseWidth)
@@ -86,13 +60,15 @@ class Trunk:
             return startingPoint
 
     def generateTrunkGraph(self, startingPoint, endingPoint):
-        pointA, pointB = startingPoint, endingPoint
-        while self.canGenerateMiddlePoint(pointA, pointB):
-            pointB = self.generateMiddlePoint(pointA, pointB)
-            print("Point", pointB)
-            self.addEdge(pointA, pointB)
-            pointA, pointB = pointB, endingPoint
-        self.addEdge(pointA, pointB)
+        pointA = startingPoint
+        while self.canGenerateMiddlePoint(pointA, endingPoint):
+            midPoint = self.generateMiddlePoint(pointA, endingPoint)
+            self.points.addEdge(pointA, midPoint)
+            pointA = midPoint
+        self.points.addEdge(pointA, endingPoint)
+
+    def canGenerateMiddlePoint(self, pointA, pointB):
+        return self.style not in [TreeStyles.FORMAL_UPRIGHT] and pointA.distanceTo(pointB) >= 1
 
     def generateMiddlePoint(self, pointA, pointB):
         ANGLE_VARIATION = 45
@@ -109,9 +85,6 @@ class Trunk:
         return middlePoint
         #TreeStyles.BROOM, TreeStyles.MULTIPLE_TRUNK, TreeStyles.FOREST
 
-    def canGenerateMiddlePoint(self, pointA, pointB):
-        return self.style not in [TreeStyles.FORMAL_UPRIGHT] and pointA.distanceTo(pointB) >= 1
-
     def calculateBaseWidth(self):
         if self.style in [TreeStyles.LITERATI]:
             return random.uniform(1, int(self.width/5) + 1) / 2
@@ -119,39 +92,49 @@ class Trunk:
             return random.uniform(1, int(self.width/2) + 1) / 2
 
     def fillTrunkMatrix(self): 
-        i = TreeParts.TRUNK.value
         self.changeCoordinatesToAvoidNegativeIndexes()
-        matrixSize = self.calculateMatrixSize()
-        self.trunkMatrix = np.zeros((matrixSize.z, matrixSize.y, matrixSize.x), dtype=int)
-        for edge in self.findEdges():
-            print("EDGES:", edge)
-            newPoint = Point(edge[1].xInt(), edge[1].yInt(), edge[1].zInt())
-            while edge[0].zInt() != newPoint.zInt():
-                if newPoint.zInt() > edge[0].zInt():
-                    newPoint.z -=1 
-                else:
-                    newPoint.z += 1
-                self.trunkMatrix[newPoint.z, newPoint.y, newPoint.x] = i
-        self.trunkMatrix[self.startingPoint.zInt()][self.startingPoint.yInt()][self.startingPoint.xInt()] = i
-        self.trunkMatrix[self.endingPoint.zInt()][self.endingPoint.yInt()][self.endingPoint.xInt()] = 5
+        self.initializeTrunkMatrix()
+        self.drawTrunk(self.startingPoint)
+        self.trunkMatrix[self.startingPoint.zInt()][self.startingPoint.yInt()][self.startingPoint.xInt()] = 0
+        self.trunkMatrix[self.endingPoint.zInt()][self.endingPoint.yInt()][self.endingPoint.xInt()] = 0
 
     def changeCoordinatesToAvoidNegativeIndexes(self):
-        offset = Point(0,0,0)
-        for edge in self.findEdges():
-            if edge[1].hasNegativeCoordinates():
-                newOffset = edge[1].getNegativeOffset()
-                offset = Point(max(offset.x, newOffset.x), max(offset.y, newOffset.y), max(offset.z, newOffset.z))
-            print(edge[1], edge[1].hasNegativeCoordinates(), offset)
+        offset = self.getNegativeOffset(self.startingPoint)
+        offset = Point(offset.xInt(), offset.yInt(), offset.zInt())
+        print("Offset:", offset)
         if offset.x != 0 or offset.y != 0 or offset.z != 0:
-            self.offsetPoints(offset)
+            self.points.incrementAllNodes(offset)
+            self.startingPoint += offset
+            self.endingPoint += offset
+    
+    def getNegativeOffset(self, point):
+        print("Point", point)
+        offset = Point(max(-point.x + 1, 0), max(-point.y + 1, 0), max(-point.z + 1, 0))
+        if self.points.hasNext(point):
+            for child in self.points.findNextNodes(point):
+                childOffset = self.getNegativeOffset(child)
+                return Point(max(offset.x, childOffset.x), max(offset.y, childOffset.y), max(offset.z, childOffset.z))
+        else:
+            return offset
 
-    def calculateMatrixSize(self): #TODO
-        x = max(self.startingPoint.xInt(), self.endingPoint.xInt()) + 1
-        y = self.depth
-        z = max(self.startingPoint.zInt(), self.endingPoint.zInt()) + 1
-        for edge in self.findEdges():
-            x = max(x, edge[0].xInt() + 1, edge[1].xInt() + 1)
-            y = max(y, edge[0].yInt() + 1, edge[1].yInt() + 1) 
-            z = max(z, edge[0].zInt() + 1, edge[1].zInt() + 1)
-        print("Matrix size:",x,y,z)
-        return Point(x,y,z)
+    def initializeTrunkMatrix(self):
+        size = self.getMaxDimensions(self.startingPoint)
+        print("Matrix size:", size.xInt(), size.yInt(), size.zInt())
+        self.trunkMatrix = np.zeros((size.zInt(), size.yInt(), size.xInt()), dtype=int)
+    
+    def getMaxDimensions(self, point):
+        print("Positive:", point)
+        maxDimensions = Point(max(point.x + 1, 0), max(point.y + 1, 0), max(point.z + 1, 0))
+        if self.points.hasNext(point):
+            for child in self.points.findNextNodes(point):
+                childMax = self.getMaxDimensions(child)
+                return Point(max(maxDimensions.x, childMax.x), max(maxDimensions.y, childMax.y), max(maxDimensions.z, childMax.z))
+        else:
+            return maxDimensions
+    
+    def drawTrunk(self, point):
+        if self.points.hasNext(point):
+            for child in self.points.findNextNodes(point):
+                self.drawTrunk(child)
+        self.trunkMatrix[point.zInt(), point.yInt(), point.xInt()] = TreeParts.TRUNK.value
+        print("POINT:", point)
